@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import Places from './Places.jsx';
 import Error from './Error.jsx';
+import { sortPlacesByDistance } from '../loc.js';
+import {fetchAvailablePlaces} from '../http.js';
+
 
 export default function AvailablePlaces({ onSelectPlace }) {
   // HTTP 요청을 보낼땐 대부분 state(상태)와 도착할 데이터만 관리하지 않는다.
@@ -33,22 +36,25 @@ export default function AvailablePlaces({ onSelectPlace }) {
       setIsFetching(true);
       
       try {
-        const response = await fetch('http://localhost:3000/places');
-        const resData = await response.json();
-  
-        // HTTP 요청했을때 발생하는 에러대처법
-        // ok메서드 : 성공(true) - 200~300 / 실패(false) - 400~500
-        if(!response.ok) {
-          throw new Error('Failed to fetch places');
-        }
+        const places = await fetchAvailablePlaces();
 
-        setAvailablePlaces(resData.places)
+        // 브라우저 유저의 위치를 fetch
+        navigator.geolocation.getCurrentPosition((position) => {
+          const sortedPlaces = sortPlacesByDistance(
+            places,
+            position.coords.latitude,
+            position.coords.longitude
+          );
+          setAvailablePlaces(sortedPlaces);
+          setIsFetching(false);
+        });
       } catch(error) {
-        setError({message: error.message || 'Could not fetch places, please try again later.'})
+        setError({
+          message:
+            error.message || 'Could not fetch places, please try again later.'
+        });
+        setIsFetching(false);
       }
-      
-
-      setIsFetching(false);
     }
 
     fetchPlaces();
