@@ -27,6 +27,7 @@ app.get('/places', async (req, res) => {
   res.status(200).json({ places: placesData });
 });
 
+// 데이터 받아오기
 app.get('/user-places', async (req, res) => {
   const fileContent = await fs.readFile('./data/user-places.json');
 
@@ -35,6 +36,7 @@ app.get('/user-places', async (req, res) => {
   res.status(200).json({ places });
 });
 
+// 데이터 저장하기
 app.put('/user-places', async (req, res) => {
   const places = req.body.places;
 
